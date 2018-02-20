@@ -1,40 +1,64 @@
 import * as fs from 'fs';
+
 var Sugar = require('sugar/date');
+Sugar.Date.getLocale('en').addFormat('{dd}/{mm}/{yyyy}');
 
-let csvFile = fs.readFileSync('bookcsv.csv', 'utf8');
-let csvLines = csvFile.split(/\r?\n/);
-let initialString = "| Pub Date    |                         Title | Authors               |";
-let secondString = "|=====================================================================|";
-console.log(initialString);
-console.log(secondString);
+class bookInfo {
+    date: string;
+    title: string;
+    authors: string;
+}
 
-for (let i = 1; i < csvLines.length; i++){
-    let params = csvLines[i].split(',');
-    let date = params[0];
-    let title = params[1];
-    let authors = params[2];
+makeHeader();
+let csvLines = getAllBooksInfo('bookcsv.csv');
 
-    Sugar.Date.getLocale('en').addFormat('{dd}/{mm}/{yyyy}');
-    let newSugarDate = Sugar.Date.create(date);
-    let formattedDate = Sugar.Date.format(newSugarDate,'{dd} {Mon} {yyyy}');
-    if (title.length > 29) {
-        let shortTitle = title.substring(0, 26);
-        title = shortTitle + '...';
+for (let i = 1; i < csvLines.length; i++) {
+
+    let book = getBookInfoFromLine(csvLines[i]);
+    formatAndPrintBook(book);
+}
+
+function formatAndPrintBook(book: bookInfo){
+    book.title = truncateString(book.title, 29);
+    book.authors = truncateString(book.authors, 21);
+
+    console.log(`| ${book.date} | ${book.title} | ${book.authors} |`);
+}
+
+function truncateString(input: string, endLength: number) {
+    if (input.length > endLength) {
+        let inputSubstring = input.substring(0, endLength - 3);
+        input = inputSubstring + '...';
     } else {
-        for (let j = title.length; j < 29; j++){
-            title = " " + title
+        for (let j = input.length; j < endLength; j++) {
+            input = " " + input
         }
     }
+    return input
+}
 
-    if (authors.length > 21) {
-        let shortAuthors = authors.substring(0, 18);
-        authors = shortAuthors + '...';
-    } else {
-        for (let j = authors.length; j < 21; j++){
-            authors = " " + authors;
-        }
-    }
+function getAllBooksInfo(filePath: string) {
+    let csvFile = fs.readFileSync(filePath, 'utf8');
+    return csvLines = csvFile.split(/\r?\n/);
+}
 
-    console.log(`| ${formattedDate} | ${title} | ${authors} |`);
+function makeHeader() {
+    let initialString = "| Pub Date    |                         Title | Authors               |";
+    let secondString = "|=====================================================================|";
+    console.log(initialString);
+    console.log(secondString);
+}
 
+function getBookInfoFromLine(line: string) {
+    let params = line.split(',');
+    let book = new bookInfo;
+    book.date = formatDate(params[0]);
+    book.title = params[1];
+    book.authors = params[2];
+    return book;
+}
+
+function formatDate(unformattedDate: string) {
+    let newSugarDate = Sugar.Date.create(unformattedDate);
+    return Sugar.Date.format(newSugarDate, '{dd} {Mon} {yyyy}');
 }
