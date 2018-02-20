@@ -9,7 +9,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/sugar": "^2.0.2",
     "fs": "0.0.1-security",
+    "sugar": "^2.0.4",
     "sugar-date": "^2.0.4"
   },
   "devDependencies": {
